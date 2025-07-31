@@ -5,8 +5,8 @@ import { Button } from "./button";
 import { PanelLeft } from "lucide-react";
 import { Separator } from "./separator";
 
-const SIDEBAR_WIDTH = "20rem";
-const SIDEBAR_WIDTH_ICON = "3rem";
+const SIDEBAR_WIDTH = "18rem";
+const SIDEBAR_WIDTH_ICON = "0rem";
 
 type SidebarContextProps = {
   state: "expanded" | "collapsed";
@@ -110,7 +110,7 @@ const Sidebar: React.FC<React.ComponentProps<"div"> & {}> = ({
     <div
       ref={ref}
       className={cn(
-        "relative flex min-h-full bg-sidebar text-sidebar-foreground border-r border-sidebar-border overflow-hidden flex-col z-10 transition-width duration-200 ease-linear",
+        "relative flex min-h-full bg-sidebar text-sidebar-foreground border-r border-sidebar-border overflow-hidden flex-col z-10 transition-width duration-150 ease-linear",
         className
       )}
       style={{ width }}
@@ -135,7 +135,7 @@ const SidebarTrigger: React.FC<React.ComponentProps<typeof Button>> = ({
       ref={ref}
       variant="ghost"
       size="icon"
-      className={cn("size-6", className)}
+      className={cn("size-6 cursor-pointer", className)}
       onClick={(event) => {
         onClick?.(event);
         toggleSidebar();
@@ -180,10 +180,49 @@ const SidebarSeparator: React.FC<React.ComponentProps<typeof Separator>> = ({
 };
 SidebarSeparator.displayName = "SidebarSeparator";
 
+const SideBarMenu: React.FC<React.ComponentProps<"ul">> = ({
+  className,
+  ref,
+  ...props
+}) => {
+  return (
+    <ul
+      className={cn("flex w-full min-w-0 flex-col gap-1", className)}
+      {...props}
+      ref={ref}
+    ></ul>
+  );
+};
+
+SideBarMenu.displayName = "SidebarMenu";
+
+const SidebarMenuItem: React.FC<React.ComponentProps<"li">> = ({
+  className,
+  ref,
+  ...props
+}) => {
+  const { state } = useSidebar();
+  return (
+    <li
+      className={cn(
+        "flex w-full min-w-0 items-center mb-5 transition-all ease-linear duration-100 cursor-pointer",
+        state === "collapsed" ? "hidden" : "block",
+        className
+      )}
+      {...props}
+      ref={ref}
+    />
+  );
+};
+
+SidebarMenuItem.displayName = "SidebarMenuItem";
+
 export {
   SidebarProvider,
   Sidebar,
   SidebarTrigger,
   SidebarHeader,
   SidebarSeparator,
+  SideBarMenu,
+  SidebarMenuItem,
 };
