@@ -27,9 +27,11 @@ export default function RootLayout({
         className={`min-h-screen flex flex-col bg-background text-foreground ${fontSans.variable} antialiased`}
       >
         <ThemeProvider>
-          <SidebarProvider>
+          <SidebarProvider defaultOpen>
             <AppSidebar />
-            {children}
+            <div className="flex flex-col flex-1">
+              <main className="flex flex-1 min-h-0">{children}</main>
+            </div>
           </SidebarProvider>
         </ThemeProvider>
       </body>
