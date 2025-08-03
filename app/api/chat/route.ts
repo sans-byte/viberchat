@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { generateText, Message, streamText } from "ai";
+import { generateText, Message } from "ai";
 
 const google = createGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
@@ -9,14 +9,11 @@ const google = createGoogleGenerativeAI({
 export async function POST(req: NextRequest) {
   try {
     const messages: Message[] = await req.json();
-    const lastMessage = messages[messages.length - 1];
-    const prompt = lastMessage.content;
+    const prompt = messages[messages.length - 1].content;
 
     if (!prompt || typeof prompt !== "string") {
       return NextResponse.json({ error: "Invalid prompt" }, { status: 400 });
     }
-
-    console.log(lastMessage);
 
     const { text } = await generateText({
       model: google("gemini-2.5-flash"),
