@@ -1,14 +1,18 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import { Message } from "ai";
 import Textarea from "react-textarea-autosize";
 import { cn } from "@/lib/utils";
 import { IconLogo } from "./ui/icons";
 import { Button } from "./ui/button";
 import { ArrowUp, ChevronDown, MessageCirclePlus, Square } from "lucide-react";
+import EmptyScreen from "./empty-screen";
 
 interface ChatPanelProps {
   input?: string;
   messages: Message[];
+  handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   scrollToBottomButton?: boolean;
   isLoading?: boolean;
 }
@@ -16,8 +20,11 @@ function ChatPanel({
   input,
   messages,
   scrollToBottomButton = true,
+  handleInputChange,
   isLoading,
 }: ChatPanelProps) {
+  const [showEmptyScreen, SetShowEmptyScreen] = useState(false);
+
   return (
     <div
       className={cn(
@@ -62,8 +69,8 @@ function ChatPanel({
             className="resize-none w-full min-h-12 bg-transparent border-0 p-6 px-6 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 overflow-visible"
             onChange={(e) => {}}
             onKeyDown={(e) => {}}
-            onFocus={(e) => {}}
-            onBlur={(e) => {}}
+            onFocus={(e) => SetShowEmptyScreen(true)}
+            onBlur={(e) => SetShowEmptyScreen(false)}
           ></Textarea>
 
           <div className="flex items-center justify-between p-3">
@@ -101,6 +108,19 @@ function ChatPanel({
             </div>
           </div>
         </div>
+        {messages.length === 0 && (
+          <EmptyScreen
+            submitMessage={(message) => {
+              handleInputChange({
+                target: { value: message },
+              } as React.ChangeEvent<HTMLTextAreaElement>);
+            }}
+            className={cn(
+              "transition-opacity duration-200 ease-in-out",
+              showEmptyScreen ? "opacity-100" : "opacity-0 pointer-events-none"
+            )}
+          ></EmptyScreen>
+        )}
       </form>
     </div>
   );
