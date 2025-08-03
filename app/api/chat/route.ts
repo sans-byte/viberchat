@@ -8,7 +8,7 @@ const google = createGoogleGenerativeAI({
 
 export async function POST(req: NextRequest) {
   try {
-    const messages: Message[] = await req.json();
+    const { messages }: { messages: Message[] } = await req.json();
 
     const { text } = await generateText({
       model: google("gemini-2.5-flash"),
