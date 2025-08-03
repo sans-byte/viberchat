@@ -9,11 +9,6 @@ const google = createGoogleGenerativeAI({
 export async function POST(req: NextRequest) {
   try {
     const messages: Message[] = await req.json();
-    const prompt = messages[messages.length - 1].content;
-
-    if (!prompt || typeof prompt !== "string") {
-      return NextResponse.json({ error: "Invalid prompt" }, { status: 400 });
-    }
 
     const { text } = await generateText({
       model: google("gemini-2.5-flash"),
