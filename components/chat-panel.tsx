@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Message } from "ai";
 import Textarea from "react-textarea-autosize";
 import { cn } from "@/lib/utils";
@@ -8,28 +8,46 @@ import { IconLogo } from "./ui/icons";
 import { Button } from "./ui/button";
 import { ArrowUp, ChevronDown, MessageCirclePlus, Square } from "lucide-react";
 import EmptyScreen from "./empty-screen";
+import { useRouter } from "next/router";
 
 interface ChatPanelProps {
-  input?: string;
-  messages: Message[];
+  input: string;
   handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  scrollToBottomButton?: boolean;
+  handleSubmit: (e: React.ChangeEvent<HTMLFormElement>) => void;
   isLoading?: boolean;
+  messages: Message[];
+  setMessages: (messages: Message[]) => void;
+  query?: string;
+  stop: () => void;
+  showScrollToBottomButton: boolean;
+  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
 }
-function ChatPanel({
+
+export function ChatPanel({
   input,
-  messages,
-  scrollToBottomButton = true,
   handleInputChange,
+  handleSubmit,
   isLoading,
+  messages,
+  setMessages,
+  query,
+  stop,
+  showScrollToBottomButton,
+  scrollContainerRef,
 }: ChatPanelProps) {
   const [showEmptyScreen, SetShowEmptyScreen] = useState(false);
+  // const router = useRouter();
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleNewChat = () => {
+    setMessages([]);
+  };
 
   return (
     <div
       className={cn(
-        "w-full bg-background group/form-container shrink-0",
-        messages.length > 0 ? "sticky bottom-0 px-2 pb-4" : "px-6"
+        "w-full bg-background group/form-container shrink-0 transition-all duration-150",
+        messages.length > 0 ? "absolute bottom-0 px-2 pb-4" : "px-6"
       )}
     >
       {messages.length === 0 && (
@@ -40,8 +58,12 @@ function ChatPanel({
           </p>
         </div>
       )}
-      <form action="" className={cn("max-w-2xl w-full mx-auto relative")}>
-        {scrollToBottomButton && messages.length === 0 && (
+      <form
+        onSubmit={handleSubmit}
+        action=""
+        className={cn("max-w-2xl w-full mx-auto relative")}
+      >
+        {showScrollToBottomButton && messages.length > 0 && (
           <Button
             type="button"
             variant="outline"
@@ -55,7 +77,7 @@ function ChatPanel({
 
         <div className="relative flex flex-col w-full gap-2 bg-muted rounded-3xl border border-input">
           <Textarea
-            ref={null}
+            ref={inputRef}
             name="input"
             rows={2}
             maxRows={5}
@@ -64,14 +86,33 @@ function ChatPanel({
             onCompositionEnd={() => {}}
             placeholder="Ask a question..."
             spellCheck={false}
-            value={undefined}
-            disabled={false}
+            value={input}
+            disabled={isLoading}
             className="resize-none w-full min-h-12 bg-transparent border-0 p-6 px-6 text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 overflow-visible"
-            onChange={(e) => {}}
-            onKeyDown={(e) => {}}
+            onChange={(e) => {
+              handleInputChange(e);
+              SetShowEmptyScreen(e.target.value.length === 0);
+            }}
+            onKeyDown={(e) => {
+              if (
+                e.key === "Enter" &&
+                !e.shiftKey
+                // &&
+                // !isComposing &&
+                // !enterDisabled
+              ) {
+                if (input.trim().length === 0) {
+                  e.preventDefault();
+                  return;
+                }
+                e.preventDefault();
+                const textarea = e.target as HTMLTextAreaElement;
+                textarea.form?.requestSubmit();
+              }
+            }}
             onFocus={(e) => SetShowEmptyScreen(true)}
             onBlur={(e) => SetShowEmptyScreen(false)}
-          ></Textarea>
+          />
 
           <div className="flex items-center justify-between p-3">
             <div className="flex items-center gap-2">
@@ -79,7 +120,7 @@ function ChatPanel({
               <div>Search Model Toggle</div>
             </div>
             <div className="flex items-center gap-2">
-              {messages.length === 0 && (
+              {messages.length > 0 && (
                 <Button
                   variant="outline"
                   size="icon"
@@ -97,9 +138,9 @@ function ChatPanel({
                 variant={"outline"}
                 className={cn(isLoading && "animate-pulse", "rounded-full")}
                 disabled={
-                  // (input.length === 0 && !isLoading) ||
+                  input.length === 0
+                  // && !isLoading) ||
                   // isToolInvocationInProgress()
-                  false
                 }
                 onClick={isLoading ? stop : undefined}
               >
@@ -116,7 +157,7 @@ function ChatPanel({
               } as React.ChangeEvent<HTMLTextAreaElement>);
             }}
             className={cn(
-              "transition-opacity duration-200 ease-in-out",
+              "transition-opacity duration-200 ease-in-out cursor-pointer",
               showEmptyScreen ? "opacity-100" : "opacity-0 pointer-events-none"
             )}
           ></EmptyScreen>
